@@ -7,11 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev --name init",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "setup": "npm run db:migrate && npm run db:seed"
+    "setup:local": "prisma migrate dev --name init && tsx prisma/seed.ts",
+    "setup:cloud": "prisma db push && tsx prisma/seed.ts"
   },
   "dependencies": {
     "next": "14.2.30",
