@@ -108,7 +108,7 @@ export function UpdateFeed({ filters, refreshTrigger }: UpdateFeedProps) {
           <h2 className="text-sm font-semibold text-slate-300">
             Live Intelligence Feed
           </h2>
-          {data && (
+          {typeof data?.total === 'number' && (
             <span className="text-xs text-slate-600 bg-slate-900 px-2 py-0.5 rounded-full">
               {data.total.toLocaleString()} total
             </span>
