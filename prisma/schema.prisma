@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  ticker    String?
+  sector    String   // payer, pharma, biotech, device, hospital, digital, regulator
+  orgType   String   // payer, regulator, provider, manufacturer, government
+  hqState   String?
+  logoUrl   String?
+  isTracked Boolean  @default(true)
+  updates   Update[]
+  createdAt DateTime @default(now())
+
+  @@map("companies")
+}
+
+model DataSource {
+  id             String    @id @default(cuid())
+  name           String
+  type           String    // rss, api
+  url            String    @unique
+  credScore      Int       @default(8)
+  pollIntervalMin Int      @default(30)
+  lastPolledAt   DateTime?
+  isActive       Boolean   @default(true)
+  updates        Update[]
+  createdAt      DateTime  @default(now())
+
+  @@map("data_sources")
+}
+
+model Update {
+  id              String      @id @default(cuid())
+  title           String
+  rawContent      String?
+  url             String      @unique
+  publishedAt     DateTime
+  ingestedAt      DateTime    @default(now())
+  companyId       String?
+  company         Company?    @relation(fields: [companyId], references: [id])
+  sourceId        String?
+  source          DataSource? @relation(fields: [sourceId], references: [id])
+  sourceName      String?
+  sourceUrl       String?
+  category        String      // fda_approval, fda_recall, cms_policy, earnings, trial_update, drug_launch, ma_activity, partnership, regulatory, research, news
+  subCategory     String?
+  linesOfBusiness String?     // JSON: ["Medicaid","Medicare","Marketplace"]
+  states          String?     // JSON: ["TX","FL","MO"]
+  impactScore     Int         @default(5)
+  severity        String      @default("medium") // low, medium, high, critical
+  updateType      String?     // risk, opportunity, competitor_move, policy_change, operational_signal
+  contentHash     String?
+  aiSummary       AiSummary?
+  createdAt       DateTime    @default(now())
+
+  @@index([publishedAt])
+  @@index([category])
+  @@index([impactScore])
+  @@index([severity])
+  @@map("updates")
+}
+
+model AiSummary {
+  id                 String   @id @default(cuid())
+  updateId           String   @unique
+  update             Update   @relation(fields: [updateId], references: [id], onDelete: Cascade)
+  summary            String
+  keyFacts           String?  // JSON array of strings
+  affectedPopulation String?
+  operationalImpact  String?
+  financialImpact    String?
+  regulatoryImpact   String?
+  competitiveImpact  String?
+  centeneRelevance   String?
+  recommendedAction  String?
+  updateType         String?
+  tags               String?  // JSON array
+  modelVersion       String   @default("llama-3.3-70b-versatile")
+  generatedAt        DateTime @default(now())
+
+  @@map("ai_summaries")
+}
+
+model IngestLog {
+  id         String   @id @default(cuid())
+  sourceId   String?
+  sourceName String?
+  itemsFound Int      @default(0)
+  itemsNew   Int      @default(0)
+  status     String   @default("success") // success, partial, error
+  error      String?
+  ranAt      DateTime @default(now())
+
+  @@map("ingest_logs")
+}

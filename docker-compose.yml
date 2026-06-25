@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  app:
+    build: .
+    container_name: healthcare-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:/app/data/healthcare.db
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - NEXT_PUBLIC_APP_NAME=Centene Intelligence Hub
+      - NEXT_PUBLIC_REFRESH_INTERVAL_MS=300000
+      - NODE_ENV=production
+    volumes:
+      - db_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:3000/api/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  worker:
+    image: node:20-alpine
+    container_name: healthcare-worker
+    working_dir: /app
+    command: node worker.js
+    volumes:
+      - ./worker.js:/app/worker.js:ro
+    environment:
+      - APP_URL=http://app:3000
+      - INGEST_INTERVAL_MS=1800000
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  db_data:

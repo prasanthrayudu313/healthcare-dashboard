@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+build/
+
+# Database (keep schema, ignore data file)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Misc
+.DS_Store
+*.pem
+npm-debug.log*
+
+# Prisma generated
+prisma/generated/
